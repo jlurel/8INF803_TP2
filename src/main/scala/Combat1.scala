@@ -8,11 +8,23 @@ object Combat1 extends App {
 
   val spark = SparkSession.builder()
     .master("local")
-    .appName("MongoSparkConnectorIntro")
+    .appName("Combat1")
     .config("spark.mongodb.input.uri", "mongodb://127.0.0.1/UQAC.monsters")
     .getOrCreate()
 
   val sc = spark.sparkContext
+
+  class node(val id: Int,
+             val name: String,
+             val color: String,
+             val hp: Int,
+             val armor: Int,
+             val regeneration: Int,
+             val melee: List[Int],
+             val ranged: Int,
+             val positionX: Double,
+             val positionY: Double,
+             val alive: Boolean) extends Serializable{}
 
   // Create an RDD for the vertices (creatures)
   val users: RDD[(VertexId, (String, String))] =
@@ -42,4 +54,5 @@ object Combat1 extends App {
 
   // Build the Graph
   val graph = Graph(users, relationships, defaultUser)
+
 }
