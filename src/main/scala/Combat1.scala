@@ -4,7 +4,7 @@ import org.apache.spark.sql.SparkSession
 // To make some of the examples work we will also need RDD
 import org.apache.spark.rdd.RDD
 
-abstract class Combat1 {
+object Combat1 extends App {
 
   val spark = SparkSession.builder()
     .master("local")
