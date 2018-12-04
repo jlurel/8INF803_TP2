@@ -4,7 +4,7 @@ import org.apache.spark.sql.SparkSession
 // To make some of the examples work we will also need RDD
 import org.apache.spark.rdd.RDD
 
-object Combat1 extends App {
+abstract class Combat1 {
 
   val spark = SparkSession.builder()
     .master("local")
@@ -14,13 +14,14 @@ object Combat1 extends App {
 
   val sc = spark.sparkContext
 
-  // Create an RDD for the vertices
-  val users: RDD[(VertexId, String)] =
-    sc.parallelize(Array((1L, "Pito"), (2L, "Solar"), (3L, "Worgs Rider"),(4L, "Worgs Rider"),
-      (5L, "Worgs Rider"), (6L, "Worgs Rider"), (7L, "Worgs Rider"), (8L, "Worgs Rider"), (9L, "Worgs Rider"),
-      (10L, "Worgs Rider"), (11L, "Worgs Rider"), (12L, "Le Warlord"), (13L, "Barbares Orc"), (14L, "Barbares Orc"),
-      (15L, "Barbares Orc"), (16L, "Barbares Orc")))
-  // Create an RDD for edges
+  // Create an RDD for the vertices (creatures)
+  val users: RDD[(VertexId, (String, String))] =
+    sc.parallelize(Array((1L, ("Pito","alive")), (2L, ("Solar", "alive")), (3L, ("Worgs Rider", "alive")),(4L, ("Worgs Rider", "alive")),
+      (5L, ("Worgs Rider", "alive")), (6L, ("Worgs Rider", "alive")), (7L, ("Worgs Rider", "alive")), (8L, ("Worgs Rider", "alive")), (9L, ("Worgs Rider", "alive")),
+      (10L, ("Worgs Rider", "alive")), (11L, ("Worgs Rider", "alive")), (12L, ("Le Warlord", "alive"),) (13L, ("Barbares Orc", "alive")), (14L, ("Barbares Orc", "alive")),
+      (15L, ("Barbares Orc", "alive")), (16L, ("Barbares Orc", "alive"))))
+
+  // Create an RDD for edges (link between two creatures)
   val relationships: RDD[Edge[String]] =
     sc.parallelize(Array(Edge(1L, 2L, "ally"),Edge(3L, 2L, "enemy"), Edge(4L, 2L, "enemy"), Edge(5L, 2L, "enemy"), Edge(6L, 2L, "enemy"),
       Edge(7L, 2L, "enemy"), Edge(8L, 2L, "enemy"), Edge(9L, 2L, "enemy"), Edge(10L, 2L, "enemy"), Edge(11L, 2L, "enemy"),
@@ -36,10 +37,9 @@ object Combat1 extends App {
       Edge(1L, 7L, "enemy"), Edge(1L, 8L, "enemy"), Edge(1L, 9L, "enemy"), Edge(1L, 10L, "enemy"), Edge(1L, 11L, "enemy"),
       Edge(1L, 12L, "enemy"), Edge(1L, 13L, "enemy"), Edge(1L, 14L, "enemy"), Edge(1L, 15L, "enemy"), Edge(1L, 16L, "enemy")
     ))
-  // Define a default user in case there are relationship with missing user
+  // Define a default user in case there are relationships with missing user
   val defaultUser = ("Missing")
-  // Build the initial Graph
-  val graph = Graph(users, relationships, defaultUser)
 
-  println(graph.vertices.filter { case (id, name) => name == "Worgs Rider" }.count)
+  // Build the Graph
+  val graph = Graph(users, relationships, defaultUser)
 }
