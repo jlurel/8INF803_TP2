@@ -18,7 +18,7 @@ object Combat1 extends App {
   val users: RDD[(VertexId, (String, String))] =
     sc.parallelize(Array((1L, ("Pito","alive")), (2L, ("Solar", "alive")), (3L, ("Worgs Rider", "alive")),(4L, ("Worgs Rider", "alive")),
       (5L, ("Worgs Rider", "alive")), (6L, ("Worgs Rider", "alive")), (7L, ("Worgs Rider", "alive")), (8L, ("Worgs Rider", "alive")), (9L, ("Worgs Rider", "alive")),
-      (10L, ("Worgs Rider", "alive")), (11L, ("Worgs Rider", "alive")), (12L, ("Le Warlord", "alive"),) (13L, ("Barbares Orc", "alive")), (14L, ("Barbares Orc", "alive")),
+      (10L, ("Worgs Rider", "alive")), (11L, ("Worgs Rider", "alive")), (12L, ("Le Warlord", "alive")), (13L, ("Barbares Orc", "alive")), (14L, ("Barbares Orc", "alive")),
       (15L, ("Barbares Orc", "alive")), (16L, ("Barbares Orc", "alive"))))
 
   // Create an RDD for edges (link between two creatures)
@@ -38,7 +38,7 @@ object Combat1 extends App {
       Edge(1L, 12L, "enemy"), Edge(1L, 13L, "enemy"), Edge(1L, 14L, "enemy"), Edge(1L, 15L, "enemy"), Edge(1L, 16L, "enemy")
     ))
   // Define a default user in case there are relationships with missing user
-  val defaultUser = ("Missing")
+  val defaultUser = ("Missing","dead")
 
   // Build the Graph
   val graph = Graph(users, relationships, defaultUser)
