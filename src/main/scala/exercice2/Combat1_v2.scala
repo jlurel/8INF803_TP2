@@ -38,22 +38,23 @@ case class Monster(val id: Int, val name: String, var color: Long, var position:
   def melee(m: Monster): Int = {
     var attackCount = 0
     var damage = 0
+    var totalHp = m.hp
     println()
-    println("%s vs %s".format(name, m.name))
+
     while (alive && m.alive && attackCount < melee.length) {
       println("--------------------------------------------------")
+      println("%s vs %s".format(name, m.name))
       println(name + " - Melee attack nº " + (attackCount + 1))
       if (random.nextInt(19) + 1 + melee(attackCount) >= m.armor) {
         damage = meleeDamage.head * (random.nextInt(meleeDamage(1) - 1) + 1) + meleeDamage(2)
-        if (damage > m.hp) {
+        if (damage > totalHp) {
           println(name +  " damaged " + m.name + " : -" + damage)
-          m.hp = 0
-          m.color = 0
+          totalHp = 0
           println(name + " killed " + m.name)
         } else {
           println(name +  " damaged " + m.name + " : -" + damage)
-          m.hp = m.hp - damage
-          println(m.name + "'s HP : " + m.hp )
+          totalHp = totalHp - damage
+          println(m.name + "'s HP : " + totalHp )
         }
       } else {
         println(name +  " missed " + m.name)
@@ -66,22 +67,23 @@ case class Monster(val id: Int, val name: String, var color: Long, var position:
   def ranged(m:Monster): Int = {
     var attackCount = 0
     var damage = 0
+    var totalHp = m.hp
     println()
-    println("%s vs %s".format(name, m.name))
+
     while (alive && m.alive && attackCount < ranged.length) {
       println("--------------------------------------------------")
+      println("%s vs %s".format(name, m.name))
       println("Ranged attack nº " + (attackCount + 1) + " - " + name + " vs " + m.name)
       if (random.nextInt(19) + 1 + ranged(attackCount) >= m.armor) {
         damage = rangedDamage.head * (random.nextInt(rangedDamage(1) - 1) + 1) + rangedDamage(2)
-        if (damage > m.hp) {
+        if (damage > totalHp) {
           println(name +  " damaged " + m.name + " : -" + damage)
-          m.hp = 0
-          m.color = 0
+          totalHp = 0
           println(name + " killed " + m.name)
         } else {
           println(name +  " damaged " + m.name + " : -" + damage)
-          m.hp = m.hp - damage
-          println(m.name + "'s HP : " + m.hp )
+          totalHp = totalHp - damage
+          println(m.name + "'s HP : " + totalHp )
         }
       } else {
         println(name +  " missed " + m.name)
@@ -142,9 +144,9 @@ class Fight extends Serializable {
     id1 + id2
   }
 
-  def deadColor(vid: VertexId, monster: Monster, totalDamage: Long): Monster = {
+  def hitAndKill(vid: VertexId, monster: Monster, totalDamage: Long): Monster = {
     if (totalDamage >= monster.hp) {
-      return new Monster(monster.id, monster.name, monster.color, monster.position, false, monster.armor,
+      return new Monster(monster.id, monster.name, 0, monster.position, false, monster.armor,
         0, monster.regeneration, monster.melee, monster.meleeDamage, monster.ranged, monster.rangedDamage, monster.speed, monster.target)
     }
     else {
@@ -209,7 +211,7 @@ class Fight extends Serializable {
         }
 
         myGraph = myGraph.joinVertices(messages2)(
-          (vid, monster, damage) => deadColor(vid, monster, damage))
+          (vid, monster, damage) => hitAndKill(vid, monster, damage))
 
       }
     }
