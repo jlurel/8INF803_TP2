@@ -104,6 +104,14 @@ case class Monster(val id: Int, val name: String, var color: Long, var position:
 class Fight extends Serializable {
   def sendDistance(context: EdgeContext[Monster, String, Long]): Unit = {
     val distance = context.srcAttr.position.dist(context.dstAttr.position).toInt
+    if (context.srcAttr.alive) {
+      context.sendToDst(distance)
+    }
+  }
+
+  def action(context: EdgeContext[Monster, String, Long]): Unit ={
+    val distance = context.srcAttr.position.dist(context.dstAttr.position).toInt
+
     if (distance <= 10) {
       context.srcAttr.melee(context.dstAttr)
       context.dstAttr.melee(context.srcAttr)
@@ -116,12 +124,7 @@ class Fight extends Serializable {
       val target = context.dstAttr.position
       context.srcAttr.position.move(target, speed)
     }
-
-    if (context.srcAttr.alive) {
-      context.sendToDst(distance)
-    }
   }
-
 
   def selectBest(id1: Long, id2: Long): Long = {
     if (id1 < id2) id1
@@ -163,8 +166,10 @@ class Fight extends Serializable {
 //        if (messages.isEmpty()) {
 //          println("Empty messages")
 //        }
+        println("**********************")
         println("Alive monsters count : " + myGraph.vertices.filter {case (id, monster) => monster.alive}.count())
-        println()
+        println("**********************")
+
         if (myGraph.vertices.filter {case (id, monster) => monster.alive }.count() == 1) {
           println("Fight ended, Solar wins")
           return
@@ -245,9 +250,9 @@ object Combat1 extends App {
     ))
 
   // Build the Graph
-  var graph = Graph(monsters, relationships)
+  val graph = Graph(monsters, relationships)
   val algoFight = new Fight()
-  val res = algoFight.execute(graph, 20, sc)
+  val res = algoFight.execute(graph, 10, sc)
 
 //  val monster1 = Monster(2, "Solar", 1, alive = true, Point(), 44, 363, 15,
 //    List(35, 30 , 25, 20), List(3, 6, 18), List(31, 26, 21, 16), List(2, 6, 14))
