@@ -58,7 +58,8 @@ class FC2 extends Serializable {
         if (messages.isEmpty()) return
 
         myGraph = myGraph.joinVertices(messages)(
-          (vid, sommet, bestId) => increaseColor(vid, sommet, bestId))
+          (vid, sommet, bestId) => increaseColor(vid, sommet, bestId)
+        )
 
         //Ignorez : Code de debug
         var printedGraph = myGraph.vertices.collect()
