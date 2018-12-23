@@ -3,7 +3,7 @@ package exercice2
 import java.io.{File, PrintWriter}
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Paths}
-
+import org.apache.commons.io.FileUtils
 import breeze.numerics.{pow, sqrt}
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.graphx.{Edge, EdgeContext, Graph, _}
@@ -13,8 +13,8 @@ import scala.util.Random
 
 case class Point() {
   val random: Random.type = scala.util.Random
-  var x: Int = random.nextInt(50)
-  var y: Int = random.nextInt(50)
+  var x: Int = random.nextInt(100)
+  var y: Int = random.nextInt(100)
 
   def move(point: Point, speed: Int) {
     val deltaX = point.x - x
@@ -181,7 +181,9 @@ class Fight extends Serializable {
     var myGraph = g
     var counter = 0
     val fields = new TripletFields(true, true, false) //join strategy
+    val directory = new File(System.getProperty("user.dir") + "/exercice2/")
 
+    FileUtils.cleanDirectory(directory)
     def loop1: Unit = {
       while (true) {
         println("------------------")
@@ -189,6 +191,7 @@ class Fight extends Serializable {
         println("------------------")
         println()
         counter += 1
+        Files.write(Paths.get(directory + "/round"+ counter + ".txt" ), toGexf(myGraph).getBytes(StandardCharsets.UTF_8))
         if (counter == maxIterations) return
 
         val messages1 = myGraph.aggregateMessages[Array[Int]](
@@ -227,8 +230,6 @@ class Fight extends Serializable {
         myGraph.vertices.collect().foreach(
           monster => monster._2.regen()
         )
-
-        Files.write(Paths.get(System.getProperty("user.dir") + "/exercice2/file"+ counter + ".txt" ), toGexf(myGraph).getBytes(StandardCharsets.UTF_8))
       }
     }
 
@@ -314,5 +315,5 @@ object Combat1 extends App {
   // Build the Graph
   val graph = Graph(monsters, relationships)
   val algoFight = new Fight()
-  val res = algoFight.execute(graph, 20, sc)
+  val res = algoFight.execute(graph, 200, sc)
 }
