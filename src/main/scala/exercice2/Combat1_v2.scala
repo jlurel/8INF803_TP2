@@ -8,8 +8,8 @@ import scala.util.Random
 
 case class Point() {
   val random: Random.type = scala.util.Random
-  var x: Int = random.nextInt(500)
-  var y: Int = random.nextInt(500)
+  var x: Int = random.nextInt(50)
+  var y: Int = random.nextInt(50)
 
   def move(point: Point, speed: Int) {
     val deltaX = point.x - x
@@ -29,7 +29,7 @@ case class Point() {
 //meleeDamage : 1d8 + 2 => List(1, 8, 2)
 case class Monster(val id: Int, val name: String, var color: Long, var position: Point, var alive: Boolean = true,
               val armor: Int, var hp: Int, val regeneration: Int, val melee: List[Int], val meleeDamage: List[Int],
-              val ranged: List[Int], val rangedDamage: List[Int], val speed: Int, val target: Boolean) extends Serializable {
+              val ranged: List[Int], val rangedDamage: List[Int], val speed: Int, var target: Boolean) extends Serializable {
   val random: Random.type = scala.util.Random
   val hpMax: Int = hp
 
@@ -40,16 +40,17 @@ case class Monster(val id: Int, val name: String, var color: Long, var position:
     var damage = 0
     var totalHp = m.hp
     println()
-
     while (alive && m.alive && attackCount < melee.length) {
-      println("--------------------------------------------------")
-      println("%s vs %s".format(name, m.name))
+      println("%s (%d) vs %s (%d)".format(name, id, m.name, m.id))
+      println("-------------------------------------------------")
       println(name + " - Melee attack nº " + (attackCount + 1))
       if (random.nextInt(19) + 1 + melee(attackCount) >= m.armor) {
         damage = meleeDamage.head * (random.nextInt(meleeDamage(1) - 1) + 1) + meleeDamage(2)
         if (damage > totalHp) {
           println(name +  " damaged " + m.name + " : -" + damage)
           totalHp = 0
+          m.color = 0
+          m.alive = false
           println(name + " killed " + m.name)
         } else {
           println(name +  " damaged " + m.name + " : -" + damage)
@@ -69,16 +70,17 @@ case class Monster(val id: Int, val name: String, var color: Long, var position:
     var damage = 0
     var totalHp = m.hp
     println()
-
     while (alive && m.alive && attackCount < ranged.length) {
+      println("%s (%d) vs %s (%d)".format(name, id, m.name, m.id))
       println("--------------------------------------------------")
-      println("%s vs %s".format(name, m.name))
       println("Ranged attack nº " + (attackCount + 1) + " - " + name + " vs " + m.name)
       if (random.nextInt(19) + 1 + ranged(attackCount) >= m.armor) {
         damage = rangedDamage.head * (random.nextInt(rangedDamage(1) - 1) + 1) + rangedDamage(2)
         if (damage > totalHp) {
           println(name +  " damaged " + m.name + " : -" + damage)
           totalHp = 0
+          m.color = 0
+          m.alive = false
           println(name + " killed " + m.name)
         } else {
           println(name +  " damaged " + m.name + " : -" + damage)
@@ -117,22 +119,25 @@ class Fight extends Serializable {
   def action(context: EdgeContext[Monster, String, Long]): Unit ={
     val distance = context.srcAttr.position.dist(context.dstAttr.position).toInt
     var damage = 0
-
-    if (distance <= 10) {
-      damage = context.srcAttr.melee(context.dstAttr)
-      //context.dstAttr.melee(context.srcAttr)
-    } else if (distance <= 110) {
-      damage = context.srcAttr.ranged(context.dstAttr)
-      // context.dstAttr.ranged(context.srcAttr)
-    }
-
+      if (context.srcAttr.alive) {
+        if (context.srcAttr.name != "Solar") {
+          if (distance <= 10 ) {
+            damage = context.srcAttr.melee(context.dstAttr)
+          } else {
+            val speed = context.srcAttr.speed
+            val target = context.dstAttr.position
+            context.srcAttr.position.move(target, speed)
+            println("%s (%d) moved".format(context.srcAttr.name, context.srcAttr.id))
+          }
+        } else {
+          if (distance <= 10) {
+            damage = context.srcAttr.melee(context.dstAttr)
+          } else if (distance <= 110) {
+            damage = context.srcAttr.ranged(context.dstAttr)
+          }
+        }
+      }
     context.sendToDst(damage)
-
-    if (distance > 5) {
-      val speed = context.srcAttr.speed
-      val target = context.dstAttr.position
-      context.srcAttr.position.move(target, speed)
-    }
   }
 
   def selectBest(id1: Array[Int], id2: Array[Int]): Array[Int] = {
@@ -144,9 +149,9 @@ class Fight extends Serializable {
     id1 + id2
   }
 
-  def hitAndKill(vid: VertexId, monster: Monster, totalDamage: Long): Monster = {
+  def deadColor(vid: VertexId, monster: Monster, totalDamage: Long): Monster = {
     if (totalDamage >= monster.hp) {
-      return new Monster(monster.id, monster.name, 0, monster.position, false, monster.armor,
+      return new Monster(monster.id, monster.name, monster.color, monster.position, false, monster.armor,
         0, monster.regeneration, monster.melee, monster.meleeDamage, monster.ranged, monster.rangedDamage, monster.speed, monster.target)
     }
     else {
@@ -211,7 +216,7 @@ class Fight extends Serializable {
         }
 
         myGraph = myGraph.joinVertices(messages2)(
-          (vid, monster, damage) => hitAndKill(vid, monster, damage))
+          (vid, monster, damage) => deadColor(vid, monster, damage))
 
       }
     }
@@ -234,7 +239,7 @@ object Combat1 extends App {
     sc.makeRDD(Array(
 //      (1L, Monster(1, "Pito", 1, alive = true, Point(), 5, 5, 0, List(0), List(0, 0, 0)),
       (2L, new Monster(2, "Solar", 1, Point(), true,44, 363, 15,
-        List(35, 30 , 25, 20), List(3, 6, 18), List(31, 26, 21, 16), List(2, 6, 14), 50, false)),
+        List(35, 30 , 25, 20), List(3, 6, 18), List(31, 26, 21, 16), List(2, 6, 14), 50, true)),
       (3L, new Monster(3, "Worgs Rider", 2, Point(), true, 18, 13, 0,
         List(6), List(1, 8, 2), List(4), List(1, 6, 0), 20, false)),
       (4L, new Monster(4, "Worgs Rider", 2, Point(), true, 18, 13, 0,
