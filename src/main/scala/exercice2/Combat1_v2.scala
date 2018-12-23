@@ -29,26 +29,26 @@ case class Point() {
 //meleeDamage : 1d8 + 2 => List(1, 8, 2)
 case class Monster(val id: Int, val name: String, var color: Long, var position: Point, var alive: Boolean = true,
               val armor: Int, var hp: Int, val regeneration: Int, val melee: List[Int], val meleeDamage: List[Int],
-              val ranged: List[Int], val rangedDamage: List[Int], val speed: Int) extends Serializable {
+              val ranged: List[Int], val rangedDamage: List[Int], val speed: Int, val target: Boolean) extends Serializable {
   val random: Random.type = scala.util.Random
   val hpMax: Int = hp
 
   override def toString: String = s"id : $id, name : $name, color : $color, hp : $hp, alive : $alive"
 
-  def melee(m: Monster): Unit = {
+  def melee(m: Monster): Int = {
     var attackCount = 0
+    var damage = 0
     println()
     println("%s vs %s".format(name, m.name))
     while (alive && m.alive && attackCount < melee.length) {
       println("--------------------------------------------------")
       println(name + " - Melee attack nº " + (attackCount + 1))
       if (random.nextInt(19) + 1 + melee(attackCount) >= m.armor) {
-        val damage = meleeDamage.head * (random.nextInt(meleeDamage(1) - 1) + 1) + meleeDamage(2)
+        damage = meleeDamage.head * (random.nextInt(meleeDamage(1) - 1) + 1) + meleeDamage(2)
         if (damage > m.hp) {
           println(name +  " damaged " + m.name + " : -" + damage)
           m.hp = 0
           m.color = 0
-          m.alive = false
           println(name + " killed " + m.name)
         } else {
           println(name +  " damaged " + m.name + " : -" + damage)
@@ -60,22 +60,23 @@ case class Monster(val id: Int, val name: String, var color: Long, var position:
       }
       attackCount += 1
     }
+    damage
   }
 
-  def ranged(m:Monster): Unit = {
+  def ranged(m:Monster): Int = {
     var attackCount = 0
+    var damage = 0
     println()
     println("%s vs %s".format(name, m.name))
     while (alive && m.alive && attackCount < ranged.length) {
       println("--------------------------------------------------")
       println("Ranged attack nº " + (attackCount + 1) + " - " + name + " vs " + m.name)
       if (random.nextInt(19) + 1 + ranged(attackCount) >= m.armor) {
-        val damage = rangedDamage.head * (random.nextInt(rangedDamage(1) - 1) + 1) + rangedDamage(2)
+        damage = rangedDamage.head * (random.nextInt(rangedDamage(1) - 1) + 1) + rangedDamage(2)
         if (damage > m.hp) {
           println(name +  " damaged " + m.name + " : -" + damage)
           m.hp = 0
           m.color = 0
-          m.alive = false
           println(name + " killed " + m.name)
         } else {
           println(name +  " damaged " + m.name + " : -" + damage)
@@ -87,6 +88,7 @@ case class Monster(val id: Int, val name: String, var color: Long, var position:
       }
       attackCount += 1
     }
+    damage
   }
 
   def regen(): Unit = {
@@ -102,23 +104,28 @@ case class Monster(val id: Int, val name: String, var color: Long, var position:
 }
 
 class Fight extends Serializable {
-  def sendDistance(context: EdgeContext[Monster, String, Long]): Unit = {
+  def sendDistance(context: EdgeContext[Monster, String, Array[Int]]): Unit = {
     val distance = context.srcAttr.position.dist(context.dstAttr.position).toInt
     if (context.srcAttr.alive) {
-      context.sendToDst(distance)
+      val a = Array(context.srcAttr.id,distance)
+      context.sendToDst(a)
     }
   }
 
   def action(context: EdgeContext[Monster, String, Long]): Unit ={
     val distance = context.srcAttr.position.dist(context.dstAttr.position).toInt
+    var damage = 0
 
     if (distance <= 10) {
-      context.srcAttr.melee(context.dstAttr)
-      context.dstAttr.melee(context.srcAttr)
+      damage = context.srcAttr.melee(context.dstAttr)
+      //context.dstAttr.melee(context.srcAttr)
     } else if (distance <= 110) {
-      context.srcAttr.ranged(context.dstAttr)
-      context.dstAttr.ranged(context.srcAttr)
+      damage = context.srcAttr.ranged(context.dstAttr)
+      // context.dstAttr.ranged(context.srcAttr)
     }
+
+    context.sendToDst(damage)
+
     if (distance > 5) {
       val speed = context.srcAttr.speed
       val target = context.dstAttr.position
@@ -126,19 +133,34 @@ class Fight extends Serializable {
     }
   }
 
-  def selectBest(id1: Long, id2: Long): Long = {
-    if (id1 < id2) id1
+  def selectBest(id1: Array[Int], id2: Array[Int]): Array[Int] = {
+    if (id1(1) < id2(1)) id1
     else id2
   }
 
-  def deadColor(vid: VertexId, monster: Monster, bestDistance: Long): Monster = {
-    if (monster.alive) {
-      return new Monster(monster.id, monster.name, monster.color, monster.position, true, monster.armor,
-        monster.hp, monster.regeneration, monster.melee, monster.meleeDamage, monster.ranged, monster.rangedDamage, monster.speed)
+  def sumDamage(id1: Long, id2: Long): Long = {
+    id1 + id2
+  }
+
+  def deadColor(vid: VertexId, monster: Monster, totalDamage: Long): Monster = {
+    if (totalDamage >= monster.hp) {
+      return new Monster(monster.id, monster.name, monster.color, monster.position, false, monster.armor,
+        0, monster.regeneration, monster.melee, monster.meleeDamage, monster.ranged, monster.rangedDamage, monster.speed, monster.target)
     }
     else {
-      return new Monster(monster.id, monster.name, monster.color, monster.position, false, monster.armor,
-        monster.hp, monster.regeneration, monster.melee, monster.meleeDamage, monster.ranged, monster.rangedDamage, monster.speed)
+      return new Monster(monster.id, monster.name, monster.color, monster.position, true, monster.armor,
+        (monster.hp - totalDamage).toInt, monster.regeneration, monster.melee, monster.meleeDamage, monster.ranged, monster.rangedDamage, monster.speed, monster.target)
+    }
+  }
+
+  def selectTarget(vid: VertexId, monster: Monster, target: Array[Int]): Monster ={
+    if (monster.id == target(0)){
+      return new Monster(monster.id, monster.name, monster.color, monster.position, monster.alive, monster.armor,monster.hp,
+        monster.regeneration, monster.melee, monster.meleeDamage, monster.ranged, monster.rangedDamage, monster.speed, true)
+    }
+    else {
+      return new Monster(monster.id, monster.name, monster.color, monster.position, monster.alive, monster.armor,monster.hp,
+        monster.regeneration, monster.melee, monster.meleeDamage, monster.ranged, monster.rangedDamage, monster.speed, false)
     }
   }
 
@@ -157,7 +179,7 @@ class Fight extends Serializable {
         counter += 1
         if (counter == maxIterations) return
 
-        val messages = myGraph.aggregateMessages[Long](
+        val messages1 = myGraph.aggregateMessages[Array[Int]](
           sendDistance,
           selectBest,
           fields
@@ -166,6 +188,17 @@ class Fight extends Serializable {
 //        if (messages.isEmpty()) {
 //          println("Empty messages")
 //        }
+
+        myGraph = myGraph.joinVertices(messages1)(
+          (vid, monster, target) => selectTarget(vid, monster, target))
+
+
+        val messages2 = myGraph.aggregateMessages[Long](
+          action,
+          sumDamage,
+          fields
+        )
+
         println("**********************")
         println("Alive monsters count : " + myGraph.vertices.filter {case (id, monster) => monster.alive}.count())
         println("**********************")
@@ -175,8 +208,8 @@ class Fight extends Serializable {
           return
         }
 
-        myGraph = myGraph.joinVertices(messages)(
-          (vid, monster, color) => deadColor(vid, monster, color))
+        myGraph = myGraph.joinVertices(messages2)(
+          (vid, monster, damage) => deadColor(vid, monster, damage))
 
       }
     }
@@ -199,35 +232,35 @@ object Combat1 extends App {
     sc.makeRDD(Array(
 //      (1L, Monster(1, "Pito", 1, alive = true, Point(), 5, 5, 0, List(0), List(0, 0, 0)),
       (2L, new Monster(2, "Solar", 1, Point(), true,44, 363, 15,
-        List(35, 30 , 25, 20), List(3, 6, 18), List(31, 26, 21, 16), List(2, 6, 14), 50)),
+        List(35, 30 , 25, 20), List(3, 6, 18), List(31, 26, 21, 16), List(2, 6, 14), 50, false)),
       (3L, new Monster(3, "Worgs Rider", 2, Point(), true, 18, 13, 0,
-        List(6), List(1, 8, 2), List(4), List(1, 6, 0), 20)),
+        List(6), List(1, 8, 2), List(4), List(1, 6, 0), 20, false)),
       (4L, new Monster(4, "Worgs Rider", 2, Point(), true, 18, 13, 0,
-        List(6), List(1, 8, 2), List(4), List(1, 6, 0), 20)),
+        List(6), List(1, 8, 2), List(4), List(1, 6, 0), 20, false)),
       (5L, new Monster(5, "Worgs Rider", 2, Point(), true, 18, 13, 0,
-        List(6), List(1, 8, 2), List(4), List(1, 6, 0), 20)),
+        List(6), List(1, 8, 2), List(4), List(1, 6, 0), 20, false)),
       (6L, new Monster(6, "Worgs Rider", 2, Point(), true, 18, 13, 0,
-        List(6), List(1, 8, 2), List(4), List(1, 6, 0), 20)),
+        List(6), List(1, 8, 2), List(4), List(1, 6, 0), 20, false)),
       (7L, new Monster(7, "Worgs Rider", 2, Point(), true, 18, 13, 0,
-        List(6), List(1, 8, 2), List(4), List(1, 6, 0), 20)),
+        List(6), List(1, 8, 2), List(4), List(1, 6, 0), 20, false)),
       (8L, new Monster(8, "Worgs Rider", 2, Point(), true, 18, 13, 0,
-        List(6), List(1, 8, 2), List(4), List(1, 6, 0), 20)),
+        List(6), List(1, 8, 2), List(4), List(1, 6, 0), 20, false)),
       (9L, new Monster(9, "Worgs Rider", 2, Point(), true, 18, 13, 0,
-        List(6), List(1, 8, 2), List(4), List(1, 6, 0), 20)),
+        List(6), List(1, 8, 2), List(4), List(1, 6, 0), 20, false)),
       (10L, new Monster(10, "Worgs Rider", 2, Point(), true, 18, 13, 0,
-        List(6), List(1, 8, 2), List(4), List(1, 6, 0), 20)),
+        List(6), List(1, 8, 2), List(4), List(1, 6, 0), 20, false)),
       (11L, new Monster(11, "Worgs Rider", 2, Point(), true, 18, 13, 0,
-        List(6), List(1, 8, 2), List(4), List(1, 6, 0), 20)),
+        List(6), List(1, 8, 2), List(4), List(1, 6, 0), 20, false)),
       (12L, new Monster(12, "Warlord", 3, Point(), true, 27, 141, 0,
-        List(20, 15, 10), List(1, 8, 10), List(19), List(1, 6, 5), 30)),
+        List(20, 15, 10), List(1, 8, 10), List(19), List(1, 6, 5), 30, false)),
       (13L, new Monster(13, "Barbare Orc", 4, Point(), true, 17, 141, 0,
-        List(19, 14, 9), List(1, 8, 10), List(16, 11, 6), List(1, 8, 6), 40)),
+        List(19, 14, 9), List(1, 8, 10), List(16, 11, 6), List(1, 8, 6), 40, false)),
       (14L, new Monster(14, "Barbare Orc", 4, Point(), true, 17, 142, 0,
-        List(19, 14, 9), List(1, 8, 10), List(16, 11, 6), List(1, 8, 6), 40)),
+        List(19, 14, 9), List(1, 8, 10), List(16, 11, 6), List(1, 8, 6), 40, false)),
       (15L, new Monster(15, "Barbare Orc", 4, Point(), true, 17, 142, 0,
-        List(19, 14, 9), List(1, 8, 10), List(16, 11, 6), List(1, 8, 6), 40)),
+        List(19, 14, 9), List(1, 8, 10), List(16, 11, 6), List(1, 8, 6), 40, false)),
       (16L, new Monster(16, "Barbare Orc", 4, Point(), true, 17, 142, 0,
-        List(19, 14, 9), List(1, 8, 10), List(16, 11, 6), List(1, 8, 6), 40))
+        List(19, 14, 9), List(1, 8, 10), List(16, 11, 6), List(1, 8, 6), 40, false))
     ))
 
   // Create an RDD for edges (link between two creatures)
@@ -236,14 +269,14 @@ object Combat1 extends App {
 //      Edge(1L, 2L, "ally"),
       Edge(3L, 2L, "enemy"), Edge(4L, 2L, "enemy"), Edge(5L, 2L, "enemy"), Edge(6L, 2L, "enemy"),
       Edge(7L, 2L, "enemy"), Edge(8L, 2L, "enemy"), Edge(9L, 2L, "enemy"), Edge(10L, 2L, "enemy"), Edge(11L, 2L, "enemy"),
-      Edge(12L, 2L, "enemy"), Edge(13L, 2L, "enemy"), Edge(14L, 2L, "enemy"), Edge(15L, 2L, "enemy"), Edge(16L, 2L, "enemy")
+      Edge(12L, 2L, "enemy"), Edge(13L, 2L, "enemy"), Edge(14L, 2L, "enemy"), Edge(15L, 2L, "enemy"), Edge(16L, 2L, "enemy"),
 //      Edge(3L, 1L, "enemy"), Edge(4L, 1L, "enemy"), Edge(5L, 1L, "enemy"), Edge(6L, 1L, "enemy"),
 //      Edge(7L, 1L, "enemy"), Edge(8L, 1L, "enemy"), Edge(9L, 1L, "enemy"), Edge(10L, 1L, "enemy"), Edge(11L, 1L, "enemy"),
 //      Edge(12L, 1L, "enemy"), Edge(13L, 1L, "enemy"), Edge(14L, 1L, "enemy"), Edge(15L, 1L, "enemy"), Edge(16L, 1L, "enemy"),
 
-//      Edge(2L, 3L, "enemy"), Edge(2L, 4L, "enemy"), Edge(2L, 5L, "enemy"), Edge(2L, 6L, "enemy"),
-//      Edge(2L, 7L, "enemy"), Edge(2L, 8L, "enemy"), Edge(2L, 9L, "enemy"), Edge(2L, 10L, "enemy"), Edge(2L, 11L, "enemy"),
-//      Edge(2L, 12L, "enemy"), Edge(2L, 13L, "enemy"), Edge(2L, 14L, "enemy"), Edge(2L, 15L, "enemy"), Edge(2L, 16L, "enemy")
+      Edge(2L, 3L, "enemy"), Edge(2L, 4L, "enemy"), Edge(2L, 5L, "enemy"), Edge(2L, 6L, "enemy"),
+      Edge(2L, 7L, "enemy"), Edge(2L, 8L, "enemy"), Edge(2L, 9L, "enemy"), Edge(2L, 10L, "enemy"), Edge(2L, 11L, "enemy"),
+      Edge(2L, 12L, "enemy"), Edge(2L, 13L, "enemy"), Edge(2L, 14L, "enemy"), Edge(2L, 15L, "enemy"), Edge(2L, 16L, "enemy")
 //      Edge(1L, 3L, "enemy"), Edge(1L, 4L, "enemy"), Edge(1L, 5L, "enemy"), Edge(1L, 6L, "enemy"),
 //      Edge(1L, 7L, "enemy"), Edge(1L, 8L, "enemy"), Edge(1L, 9L, "enemy"), Edge(1L, 10L, "enemy"), Edge(1L, 11L, "enemy"),
 //      Edge(1L, 12L, "enemy"), Edge(1L, 13L, "enemy"), Edge(1L, 14L, "enemy"), Edge(1L, 15L, "enemy"), Edge(1L, 16L, "enemy")
@@ -252,7 +285,7 @@ object Combat1 extends App {
   // Build the Graph
   val graph = Graph(monsters, relationships)
   val algoFight = new Fight()
-  val res = algoFight.execute(graph, 10, sc)
+  val res = algoFight.execute(graph, 20, sc)
 
 //  val monster1 = Monster(2, "Solar", 1, alive = true, Point(), 44, 363, 15,
 //    List(35, 30 , 25, 20), List(3, 6, 18), List(31, 26, 21, 16), List(2, 6, 14))
