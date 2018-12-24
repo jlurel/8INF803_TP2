@@ -19,6 +19,7 @@ case class Point(var x: Int, var y: Int) {
 
   override def toString: String = s"($x,$y)"
 
+  //Se rapproche du target point
   def move(point: Point, speed: Int): Unit = {
     val deltaX = point.x - x
     val deltaY = point.y - y
@@ -29,7 +30,8 @@ case class Point(var x: Int, var y: Int) {
     y += (speed * Math.sin( angle )).toInt
   }
 
-  def dist(point: Point): Double = {
+  //Calcule la distance avec le target point
+  def distance(point: Point): Double = {
     sqrt(pow(x - point.x, 2) + pow(y - point.y, 2))
   }
 }
@@ -43,6 +45,7 @@ case class Monster(id: Int, name: String, var color: Long, var position: Point, 
 
   override def toString: String = s"id : $id, name : $name, color : $color, hp : $hp, alive : $alive, position : $position"
 
+  //Attaque de mêlée
   def melee(m: Monster): Int = {
     var attackCount = 0
     var damage = 0
@@ -73,6 +76,7 @@ case class Monster(id: Int, name: String, var color: Long, var position: Point, 
     damage
   }
 
+  //Attaque à distance
   def ranged(m:Monster): Int = {
     var attackCount = 0
     var damage = 0
@@ -103,6 +107,7 @@ case class Monster(id: Int, name: String, var color: Long, var position: Point, 
     damage
   }
 
+  //Regeneration
   def regen(): Unit = {
     if (regeneration != 0) {
       hp += regeneration
@@ -116,16 +121,18 @@ case class Monster(id: Int, name: String, var color: Long, var position: Point, 
 }
 
 class Fight extends Serializable {
+  //Envoie la distance avec l'autre monstre
   def sendDistance(context: EdgeContext[Monster, String, Array[Int]]): Unit = {
-    val distance = context.srcAttr.position.dist(context.dstAttr.position).toInt
+    val distance = context.srcAttr.position.distance(context.dstAttr.position).toInt
     if (context.srcAttr.alive) {
       val a = Array(context.srcAttr.id,distance)
       context.sendToDst(a)
     }
   }
 
+  //Choisit l'action à effectuer pendant le tour
   def action(context: EdgeContext[Monster, String, (Point, Long)]): Unit ={
-    val distance = context.srcAttr.position.dist(context.dstAttr.position).toInt
+    val distance = context.srcAttr.position.distance(context.dstAttr.position).toInt
     var damage = 0
       if (context.srcAttr.alive) {
         if (context.srcAttr.name != "Solar") {
@@ -152,15 +159,18 @@ class Fight extends Serializable {
     context.sendToDst(tuple)
   }
 
+  //Choisit la distance la plus petite
   def selectBest(id1: Array[Int], id2: Array[Int]): Array[Int] = {
     if (id1(1) < id2(1)) id1
     else id2
   }
 
+  //Cumule les dégats en cas d'attaques multiples sur une target
   def sumDamage(id1: (Point, Long), id2: (Point, Long)): (Point, Long) = {
     (id1._1, id1._2 + id2._2)
   }
 
+  //Afflige les dégats
   def hitAndKill(vid: VertexId, monster: Monster, data: (Point, Long)): Monster = {
     if (data._2 >= monster.hp) {
       return new Monster(monster.id, monster.name, 0, monster.position, false, monster.armor,
@@ -191,6 +201,7 @@ class Fight extends Serializable {
     val directory = new File(System.getProperty("user.dir") + "/exercice2/")
 
     FileUtils.cleanDirectory(directory)
+
     def loop1: Unit = {
       while (true) {
         println("------------------")
@@ -199,6 +210,7 @@ class Fight extends Serializable {
         println()
         counter += 1
 
+        //Enregistre le graphe dans un fichier GEXF pour la visualisation avec Gephi
         val pw = new PrintWriter(directory + "/round"+ counter + ".gexf")
         pw.write(toGexf(myGraph))
         pw.close()
@@ -211,10 +223,6 @@ class Fight extends Serializable {
           selectBest,
           fields
         )
-
-//        if (messages.isEmpty()) {
-//          println("Empty messages")
-//        }
 
         myGraph = myGraph.joinVertices(messages1)(
           (vid, monster, target) => selectTarget(vid, monster, target))
@@ -230,7 +238,7 @@ class Fight extends Serializable {
         println("Alive monsters count : " + myGraph.vertices.filter {case (id, monster) => monster.alive}.count())
         println("**********************")
 
-//        Conditions d'arrêt
+        //Conditions d'arrêt
         if (myGraph.vertices.filter {case (id, monster) => monster.alive }.count() == 1) {
           println("Fight ended, Solar wins")
           return
@@ -245,8 +253,8 @@ class Fight extends Serializable {
       }
     }
 
-    loop1 //execute loop
-    myGraph //return the result graph
+    loop1
+    myGraph
   }
 
   def toGexf[VD, ED](g: Graph[VD, ED]): String = {
