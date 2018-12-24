@@ -1,8 +1,7 @@
 package exercice2
 
 import java.io.{File, PrintWriter}
-import java.nio.charset.StandardCharsets
-import java.nio.file.{Files, Paths}
+
 import org.apache.commons.io.FileUtils
 import breeze.numerics.{pow, sqrt}
 import org.apache.spark.{SparkConf, SparkContext}
@@ -11,12 +10,16 @@ import org.apache.spark.graphx.{Edge, EdgeContext, Graph, _}
 import scala.util.Random
 
 
-case class Point() {
+case class Point(var x: Int, var y: Int) {
   val random: Random.type = scala.util.Random
-  var x: Int = random.nextInt(100)
-  var y: Int = random.nextInt(100)
+  if (x == 0 && y == 0) {
+    x = random.nextInt(100)
+    y = random.nextInt(100)
+  }
 
-  def move(point: Point, speed: Int) {
+  override def toString: String = s"($x,$y)"
+
+  def move(point: Point, speed: Int): Point = {
     val deltaX = point.x - x
     val deltaY = point.y - y
     val angle = Math.atan2(deltaY, deltaX)
@@ -24,6 +27,7 @@ case class Point() {
 
     x += (speed * Math.cos( angle )).toInt
     y += (speed * Math.sin( angle )).toInt
+    Point(x, y)
   }
 
   def dist(point: Point): Double = {
@@ -32,13 +36,13 @@ case class Point() {
 }
 
 //meleeDamage : 1d8 + 2 => List(1, 8, 2)
-case class Monster(val id: Int, val name: String, var color: Long, var position: Point, var alive: Boolean = true,
-              val armor: Int, var hp: Int, val regeneration: Int, val melee: List[Int], val meleeDamage: List[Int],
-              val ranged: List[Int], val rangedDamage: List[Int], val speed: Int, var target: Boolean) extends Serializable {
+case class Monster(id: Int, name: String, var color: Long, var position: Point, var alive: Boolean = true,
+              armor: Int, var hp: Int, regeneration: Int, melee: List[Int], meleeDamage: List[Int],
+              ranged: List[Int], rangedDamage: List[Int], speed: Int, var target: Boolean) extends Serializable {
   val random: Random.type = scala.util.Random
   val hpMax: Int = hp
 
-  override def toString: String = s"id : $id, name : $name, color : $color, hp : $hp, alive : $alive"
+  override def toString: String = s"id : $id, name : $name, color : $color, hp : $hp, alive : $alive, position : $position"
 
   def melee(m: Monster): Int = {
     var attackCount = 0
@@ -191,7 +195,12 @@ class Fight extends Serializable {
         println("------------------")
         println()
         counter += 1
-        Files.write(Paths.get(directory + "/round"+ counter + ".txt" ), toGexf(myGraph).getBytes(StandardCharsets.UTF_8))
+
+        val pw = new PrintWriter(directory + "/round"+ counter + ".gexf")
+        pw.write(toGexf(myGraph))
+        pw.close()
+
+
         if (counter == maxIterations) return
 
         val messages1 = myGraph.aggregateMessages[Array[Int]](
@@ -237,21 +246,85 @@ class Fight extends Serializable {
     myGraph //return the result graph
   }
 
-  def toGexf[VD,ED](g:Graph[VD,ED]) : String = {
-    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-      "<gexf xmlns=\"http://www.gexf.net/1.2draft\" version=\"1.2\">\n" +
-      "  <graph mode=\"static\" defaultedgetype=\"directed\">\n" +
-      "    <nodes>\n" +
-      g.vertices.map(v => "      <node id=\"" + v._1 + "\" label=\"" +
-        v._2 + "\" />\n").collect.mkString +
-      "    </nodes>\n" +
-      "    <edges>\n" +
-      g.edges.map(e => "      <edge source=\"" + e.srcId +
-        "\" target=\"" + e.dstId + "\" label=\"" + e.attr +
-        "\" />\n").collect.mkString +
-      "    </edges>\n" +
-      "  </graph>\n" +
-      "</gexf>"
+  def toGexf[VD, ED](g: Graph[VD, ED]): String = {
+    val header =
+      """<?xml version="1.0" encoding="UTF-8"?>
+        |<gexf xmlns="http://www.gexf.net/1.2draft" version="1.2"
+        | xmlns:viz="http://www.gexf.net/1.2draft/viz" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        |  xsi:schemaLocation="http://www.gexf.net/1.2draft http://www.gexf.net/1.2draft/gexf.xsd">
+        |  <meta>
+        |    <description>A gephi graph in GEXF format</description>
+        |  </meta>
+        |    <graph mode="static" defaultedgetype="directed">
+        |    <attributes class="node" mode="static">
+        |      <attribute id="lat" title="Latitude" type="double"></attribute>
+        |      <attribute id="long" title="Longitude" type="double"></attribute>
+        |    </attributes>
+      """.stripMargin
+
+    val vertices = "<nodes>\n" + g.vertices.map(
+      v =>
+        if (v._2.asInstanceOf[Monster].color == 1) {
+          s"""<node id=\"${v._1}\" label=\"${v._2.asInstanceOf[Monster].name}\">
+             |<attvalues>
+             | <attvalue for=\"lat\" value=\"${v._2.asInstanceOf[Monster].position.x}\"></attvalue>
+             | <attvalue for=\"long\" value=\"${v._2.asInstanceOf[Monster].position.y}\"></attvalue>
+             |</attvalues>
+             |<viz:position x=\"${v._2.asInstanceOf[Monster].position.x}\" y=\"${v._2.asInstanceOf[Monster].position.y}\"></viz:position>
+             |<viz:color r=\"255\" g=\"204\" b=\"0\"></viz:color>
+             |</node>
+         """.stripMargin
+        } else if (v._2.asInstanceOf[Monster].color == 2) {
+          s"""<node id=\"${v._1}\" label=\"${v._2.asInstanceOf[Monster].name}\" lat=\"${v._2.asInstanceOf[Monster].position.x}\" long=\"${v._2.asInstanceOf[Monster].position.y}\">
+             |<attvalues>
+             | <attvalue for=\"lat\" value=\"${v._2.asInstanceOf[Monster].position.x}\"></attvalue>
+             | <attvalue for=\"long\" value=\"${v._2.asInstanceOf[Monster].position.y}\"></attvalue>
+             |</attvalues>
+             |<viz:position x=\"${v._2.asInstanceOf[Monster].position.x}\" y=\"${v._2.asInstanceOf[Monster].position.y}\"></viz:position>
+             |<viz:color r=\"0\" g=\"0\" b=\"0\"></viz:color>
+             |</node>
+         """.stripMargin
+        } else if (v._2.asInstanceOf[Monster].color == 3) {
+          s"""<node id=\"${v._1}\" label=\"${v._2.asInstanceOf[Monster].name}\" lat=\"${v._2.asInstanceOf[Monster].position.x}\" long=\"${v._2.asInstanceOf[Monster].position.y}\">
+             |<attvalues>
+             | <attvalue for=\"lat\" value=\"${v._2.asInstanceOf[Monster].position.x}\"></attvalue>
+             | <attvalue for=\"long\" value=\"${v._2.asInstanceOf[Monster].position.y}\"></attvalue>
+             |</attvalues>
+             |<viz:position x=\"${v._2.asInstanceOf[Monster].position.x}\" y=\"${v._2.asInstanceOf[Monster].position.y}\"></viz:position>
+             |<viz:color r=\"0\" g=\"0\" b=\"255\"></viz:color>
+             |</node>
+         """.stripMargin
+        } else if (v._2.asInstanceOf[Monster].color == 4) {
+          s"""<node id=\"${v._1}\" label=\"${v._2.asInstanceOf[Monster].name}\" lat=\"${v._2.asInstanceOf[Monster].position.x}\" long=\"${v._2.asInstanceOf[Monster].position.y}\">
+             |<attvalues>
+             | <attvalue for=\"lat\" value=\"${v._2.asInstanceOf[Monster].position.x}\"></attvalue>
+             | <attvalue for=\"long\" value=\"${v._2.asInstanceOf[Monster].position.y}\"></attvalue>
+             |</attvalues>
+             |<viz:position x=\"${v._2.asInstanceOf[Monster].position.x}\" y=\"${v._2.asInstanceOf[Monster].position.y}\"></viz:position>
+             |<viz:color r=\"255\" g=\"0\" b=\"0\"></viz:color>
+             |</node>
+         """.stripMargin
+        } else {
+          s"""<node id=\"${v._1}\" label=\"${v._2.asInstanceOf[Monster].name}\" lat=\"${v._2.asInstanceOf[Monster].position.x}\" long=\"${v._2.asInstanceOf[Monster].position.y}\">
+             |<attvalues>
+             | <attvalue for=\"lat\" value=\"${v._2.asInstanceOf[Monster].position.x}\"></attvalue>
+             | <attvalue for=\"long\" value=\"${v._2.asInstanceOf[Monster].position.y}\"></attvalue>
+             |</attvalues>
+             |<viz:position x=\"${v._2.asInstanceOf[Monster].position.x}\" y=\"${v._2.asInstanceOf[Monster].position.y}\"></viz:position>
+             |<viz:color r=\"255\" g=\"255\" b=\"255\"></viz:color>
+             |</node>
+         """.stripMargin
+        }
+
+    ).collect.mkString + "</nodes>\n"
+
+    val edges = "<edges>\n" + g.edges.map(
+      e => s"""<edge source=\"${e.srcId}\" target=\"${e.dstId}\" label=\"${e.attr}\"/>\n"""
+    ).collect.mkString + "</edges>\n"
+
+    val footer = "</graph>\n</gexf>"
+
+    header + vertices + edges + footer
   }
 
 }
@@ -267,35 +340,35 @@ object Combat1 extends App {
   var monsters =
     sc.makeRDD(Array(
 //      (1L, Monster(1, "Pito", 1, alive = true, Point(), 5, 5, 0, List(0), List(0, 0, 0)),
-      (2L, new Monster(2, "Solar", 1, Point(), true,44, 363, 15,
+      (2L, new Monster(2, "Solar", 1, Point(0,0), true,44, 363, 15,
         List(35, 30 , 25, 20), List(3, 6, 18), List(31, 26, 21, 16), List(2, 6, 14), 50, true)),
-      (3L, new Monster(3, "Worgs Rider", 2, Point(), true, 18, 13, 0,
+      (3L, new Monster(3, "Worgs Rider", 2, Point(0,0), true, 18, 13, 0,
         List(6), List(1, 8, 2), List(4), List(1, 6, 0), 20, false)),
-      (4L, new Monster(4, "Worgs Rider", 2, Point(), true, 18, 13, 0,
+      (4L, new Monster(4, "Worgs Rider", 2, Point(0,0), true, 18, 13, 0,
         List(6), List(1, 8, 2), List(4), List(1, 6, 0), 20, false)),
-      (5L, new Monster(5, "Worgs Rider", 2, Point(), true, 18, 13, 0,
+      (5L, new Monster(5, "Worgs Rider", 2, Point(0,0), true, 18, 13, 0,
         List(6), List(1, 8, 2), List(4), List(1, 6, 0), 20, false)),
-      (6L, new Monster(6, "Worgs Rider", 2, Point(), true, 18, 13, 0,
+      (6L, new Monster(6, "Worgs Rider", 2, Point(0,0), true, 18, 13, 0,
         List(6), List(1, 8, 2), List(4), List(1, 6, 0), 20, false)),
-      (7L, new Monster(7, "Worgs Rider", 2, Point(), true, 18, 13, 0,
+      (7L, new Monster(7, "Worgs Rider", 2, Point(0,0), true, 18, 13, 0,
         List(6), List(1, 8, 2), List(4), List(1, 6, 0), 20, false)),
-      (8L, new Monster(8, "Worgs Rider", 2, Point(), true, 18, 13, 0,
+      (8L, new Monster(8, "Worgs Rider", 2, Point(0,0), true, 18, 13, 0,
         List(6), List(1, 8, 2), List(4), List(1, 6, 0), 20, false)),
-      (9L, new Monster(9, "Worgs Rider", 2, Point(), true, 18, 13, 0,
+      (9L, new Monster(9, "Worgs Rider", 2, Point(0,0), true, 18, 13, 0,
         List(6), List(1, 8, 2), List(4), List(1, 6, 0), 20, false)),
-      (10L, new Monster(10, "Worgs Rider", 2, Point(), true, 18, 13, 0,
+      (10L, new Monster(10, "Worgs Rider", 2, Point(0,0), true, 18, 13, 0,
         List(6), List(1, 8, 2), List(4), List(1, 6, 0), 20, false)),
-      (11L, new Monster(11, "Worgs Rider", 2, Point(), true, 18, 13, 0,
+      (11L, new Monster(11, "Worgs Rider", 2, Point(0,0), true, 18, 13, 0,
         List(6), List(1, 8, 2), List(4), List(1, 6, 0), 20, false)),
-      (12L, new Monster(12, "Warlord", 3, Point(), true, 27, 141, 0,
+      (12L, new Monster(12, "Warlord", 3, Point(0,0), true, 27, 141, 0,
         List(20, 15, 10), List(1, 8, 10), List(19), List(1, 6, 5), 30, false)),
-      (13L, new Monster(13, "Barbare Orc", 4, Point(), true, 17, 141, 0,
+      (13L, new Monster(13, "Barbare Orc", 4, Point(0,0), true, 17, 141, 0,
         List(19, 14, 9), List(1, 8, 10), List(16, 11, 6), List(1, 8, 6), 40, false)),
-      (14L, new Monster(14, "Barbare Orc", 4, Point(), true, 17, 142, 0,
+      (14L, new Monster(14, "Barbare Orc", 4, Point(0,0), true, 17, 142, 0,
         List(19, 14, 9), List(1, 8, 10), List(16, 11, 6), List(1, 8, 6), 40, false)),
-      (15L, new Monster(15, "Barbare Orc", 4, Point(), true, 17, 142, 0,
+      (15L, new Monster(15, "Barbare Orc", 4, Point(0,0), true, 17, 142, 0,
         List(19, 14, 9), List(1, 8, 10), List(16, 11, 6), List(1, 8, 6), 40, false)),
-      (16L, new Monster(16, "Barbare Orc", 4, Point(), true, 17, 142, 0,
+      (16L, new Monster(16, "Barbare Orc", 4, Point(0,0), true, 17, 142, 0,
         List(19, 14, 9), List(1, 8, 10), List(16, 11, 6), List(1, 8, 6), 40, false))
     ))
 

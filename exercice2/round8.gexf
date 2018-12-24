@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gexf xmlns="http://www.gexf.net/1.2draft" version="1.2"
+ xmlns:viz="http://www.gexf.net/1.2draft/viz" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.gexf.net/1.2draft http://www.gexf.net/1.2draft/gexf.xsd">
+  <meta>
+    <description>A gephi graph in GEXF format</description>
+  </meta>
+    <graph mode="static" defaultedgetype="directed">
+    <attributes class="node" mode="static">
+      <attribute id="lat" title="Latitude" type="double"></attribute>
+      <attribute id="long" title="Longitude" type="double"></attribute>
+    </attributes>
+      <nodes>
+<node id="4" label="Worgs Rider" lat="15" long="28">
+<attvalues>
+ <attvalue for="lat" value="15"></attvalue>
+ <attvalue for="long" value="28"></attvalue>
+</attvalues>
+<viz:position x="15" y="28"></viz:position>
+<viz:color r="255" g="255" b="255"></viz:color>
+</node>
+         <node id="16" label="Barbare Orc" lat="82" long="46">
+<attvalues>
+ <attvalue for="lat" value="82"></attvalue>
+ <attvalue for="long" value="46"></attvalue>
+</attvalues>
+<viz:position x="82" y="46"></viz:position>
+<viz:color r="255" g="255" b="255"></viz:color>
+</node>
+         <node id="8" label="Worgs Rider" lat="88" long="93">
+<attvalues>
+ <attvalue for="lat" value="88"></attvalue>
+ <attvalue for="long" value="93"></attvalue>
+</attvalues>
+<viz:position x="88" y="93"></viz:position>
+<viz:color r="255" g="255" b="255"></viz:color>
+</node>
+         <node id="12" label="Warlord" lat="29" long="28">
+<attvalues>
+ <attvalue for="lat" value="29"></attvalue>
+ <attvalue for="long" value="28"></attvalue>
+</attvalues>
+<viz:position x="29" y="28"></viz:position>
+<viz:color r="0" g="0" b="255"></viz:color>
+</node>
+         <node id="13" label="Barbare Orc" lat="70" long="69">
+<attvalues>
+ <attvalue for="lat" value="70"></attvalue>
+ <attvalue for="long" value="69"></attvalue>
+</attvalues>
+<viz:position x="70" y="69"></viz:position>
+<viz:color r="255" g="0" b="0"></viz:color>
+</node>
+         <node id="9" label="Worgs Rider" lat="1" long="20">
+<attvalues>
+ <attvalue for="lat" value="1"></attvalue>
+ <attvalue for="long" value="20"></attvalue>
+</attvalues>
+<viz:position x="1" y="20"></viz:position>
+<viz:color r="255" g="255" b="255"></viz:color>
+</node>
+         <node id="5" label="Worgs Rider" lat="6" long="43">
+<attvalues>
+ <attvalue for="lat" value="6"></attvalue>
+ <attvalue for="long" value="43"></attvalue>
+</attvalues>
+<viz:position x="6" y="43"></viz:position>
+<viz:color r="255" g="255" b="255"></viz:color>
+</node>
+         <node id="14" label="Barbare Orc" lat="78" long="17">
+<attvalues>
+ <attvalue for="lat" value="78"></attvalue>
+ <attvalue for="long" value="17"></attvalue>
+</attvalues>
+<viz:position x="78" y="17"></viz:position>
+<viz:color r="255" g="255" b="255"></viz:color>
+</node>
+         <node id="6" label="Worgs Rider" lat="93" long="50">
+<attvalues>
+ <attvalue for="lat" value="93"></attvalue>
+ <attvalue for="long" value="50"></attvalue>
+</attvalues>
+<viz:position x="93" y="50"></viz:position>
+<viz:color r="255" g="255" b="255"></viz:color>
+</node>
+         <node id="10" label="Worgs Rider" lat="34" long="31">
+<attvalues>
+ <attvalue for="lat" value="34"></attvalue>
+ <attvalue for="long" value="31"></attvalue>
+</attvalues>
+<viz:position x="34" y="31"></viz:position>
+<viz:color r="255" g="255" b="255"></viz:color>
+</node>
+         <node id="2" label="Solar">
+<attvalues>
+ <attvalue for="lat" value="40"></attvalue>
+ <attvalue for="long" value="42"></attvalue>
+</attvalues>
+<viz:position x="40" y="42"></viz:position>
+<viz:color r="255" g="204" b="0"></viz:color>
+</node>
+         <node id="15" label="Barbare Orc" lat="51" long="49">
+<attvalues>
+ <attvalue for="lat" value="51"></attvalue>
+ <attvalue for="long" value="49"></attvalue>
+</attvalues>
+<viz:position x="51" y="49"></viz:position>
+<viz:color r="255" g="255" b="255"></viz:color>
+</node>
+         <node id="11" label="Worgs Rider" lat="9" long="42">
+<attvalues>
+ <attvalue for="lat" value="9"></attvalue>
+ <attvalue for="long" value="42"></attvalue>
+</attvalues>
+<viz:position x="9" y="42"></viz:position>
+<viz:color r="255" g="255" b="255"></viz:color>
+</node>
+         <node id="3" label="Worgs Rider" lat="59" long="93">
+<attvalues>
+ <attvalue for="lat" value="59"></attvalue>
+ <attvalue for="long" value="93"></attvalue>
+</attvalues>
+<viz:position x="59" y="93"></viz:position>
+<viz:color r="255" g="255" b="255"></viz:color>
+</node>
+         <node id="7" label="Worgs Rider" lat="46" long="67">
+<attvalues>
+ <attvalue for="lat" value="46"></attvalue>
+ <attvalue for="long" value="67"></attvalue>
+</attvalues>
+<viz:position x="46" y="67"></viz:position>
+<viz:color r="255" g="255" b="255"></viz:color>
+</node>
+         </nodes>
+<edges>
+<edge source="3" target="2" label="enemy"/>
+<edge source="4" target="2" label="enemy"/>
+<edge source="5" target="2" label="enemy"/>
+<edge source="6" target="2" label="enemy"/>
+<edge source="7" target="2" label="enemy"/>
+<edge source="8" target="2" label="enemy"/>
+<edge source="9" target="2" label="enemy"/>
+<edge source="10" target="2" label="enemy"/>
+<edge source="11" target="2" label="enemy"/>
+<edge source="12" target="2" label="enemy"/>
+<edge source="13" target="2" label="enemy"/>
+<edge source="14" target="2" label="enemy"/>
+<edge source="15" target="2" label="enemy"/>
+<edge source="16" target="2" label="enemy"/>
+<edge source="2" target="3" label="enemy"/>
+<edge source="2" target="4" label="enemy"/>
+<edge source="2" target="5" label="enemy"/>
+<edge source="2" target="6" label="enemy"/>
+<edge source="2" target="7" label="enemy"/>
+<edge source="2" target="8" label="enemy"/>
+<edge source="2" target="9" label="enemy"/>
+<edge source="2" target="10" label="enemy"/>
+<edge source="2" target="11" label="enemy"/>
+<edge source="2" target="12" label="enemy"/>
+<edge source="2" target="13" label="enemy"/>
+<edge source="2" target="14" label="enemy"/>
+<edge source="2" target="15" label="enemy"/>
+<edge source="2" target="16" label="enemy"/>
+</edges>
+</graph>
+</gexf>
