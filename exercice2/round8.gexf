@@ -11,124 +11,124 @@
       <attribute id="long" title="Longitude" type="double"></attribute>
     </attributes>
       <nodes>
-<node id="4" label="Worgs Rider" lat="24" long="78">
+<node id="4" label="Worgs Rider" lat="58" long="34">
 <attvalues>
- <attvalue for="lat" value="24"></attvalue>
- <attvalue for="long" value="78"></attvalue>
+ <attvalue for="lat" value="58"></attvalue>
+ <attvalue for="long" value="34"></attvalue>
 </attvalues>
-<viz:position x="24" y="78"></viz:position>
+<viz:position x="58" y="34"></viz:position>
 <viz:color r="255" g="255" b="255"></viz:color>
 </node>
-         <node id="16" label="Barbare Orc" lat="18" long="37">
+         <node id="16" label="Barbare Orc" lat="60" long="7">
 <attvalues>
- <attvalue for="lat" value="18"></attvalue>
- <attvalue for="long" value="37"></attvalue>
+ <attvalue for="lat" value="60"></attvalue>
+ <attvalue for="long" value="7"></attvalue>
 </attvalues>
-<viz:position x="18" y="37"></viz:position>
+<viz:position x="60" y="7"></viz:position>
 <viz:color r="255" g="255" b="255"></viz:color>
 </node>
-         <node id="8" label="Worgs Rider" lat="67" long="72">
+         <node id="8" label="Worgs Rider" lat="78" long="82">
+<attvalues>
+ <attvalue for="lat" value="78"></attvalue>
+ <attvalue for="long" value="82"></attvalue>
+</attvalues>
+<viz:position x="78" y="82"></viz:position>
+<viz:color r="255" g="255" b="255"></viz:color>
+</node>
+         <node id="12" label="Warlord" lat="60" long="9">
+<attvalues>
+ <attvalue for="lat" value="60"></attvalue>
+ <attvalue for="long" value="9"></attvalue>
+</attvalues>
+<viz:position x="60" y="9"></viz:position>
+<viz:color r="255" g="255" b="255"></viz:color>
+</node>
+         <node id="13" label="Barbare Orc" lat="76" long="29">
+<attvalues>
+ <attvalue for="lat" value="76"></attvalue>
+ <attvalue for="long" value="29"></attvalue>
+</attvalues>
+<viz:position x="76" y="29"></viz:position>
+<viz:color r="255" g="0" b="0"></viz:color>
+</node>
+         <node id="9" label="Worgs Rider" lat="56" long="52">
+<attvalues>
+ <attvalue for="lat" value="56"></attvalue>
+ <attvalue for="long" value="52"></attvalue>
+</attvalues>
+<viz:position x="56" y="52"></viz:position>
+<viz:color r="255" g="255" b="255"></viz:color>
+</node>
+         <node id="5" label="Worgs Rider" lat="11" long="62">
+<attvalues>
+ <attvalue for="lat" value="11"></attvalue>
+ <attvalue for="long" value="62"></attvalue>
+</attvalues>
+<viz:position x="11" y="62"></viz:position>
+<viz:color r="255" g="255" b="255"></viz:color>
+</node>
+         <node id="14" label="Barbare Orc" lat="67" long="12">
 <attvalues>
  <attvalue for="lat" value="67"></attvalue>
- <attvalue for="long" value="72"></attvalue>
+ <attvalue for="long" value="12"></attvalue>
 </attvalues>
-<viz:position x="67" y="72"></viz:position>
+<viz:position x="67" y="12"></viz:position>
 <viz:color r="255" g="255" b="255"></viz:color>
 </node>
-         <node id="12" label="Warlord" lat="41" long="58">
+         <node id="6" label="Worgs Rider" lat="81" long="46">
 <attvalues>
- <attvalue for="lat" value="41"></attvalue>
- <attvalue for="long" value="58"></attvalue>
+ <attvalue for="lat" value="81"></attvalue>
+ <attvalue for="long" value="46"></attvalue>
 </attvalues>
-<viz:position x="41" y="58"></viz:position>
+<viz:position x="81" y="46"></viz:position>
 <viz:color r="255" g="255" b="255"></viz:color>
 </node>
-         <node id="13" label="Barbare Orc" lat="29" long="64">
+         <node id="10" label="Worgs Rider" lat="57" long="74">
 <attvalues>
- <attvalue for="lat" value="29"></attvalue>
- <attvalue for="long" value="64"></attvalue>
+ <attvalue for="lat" value="57"></attvalue>
+ <attvalue for="long" value="74"></attvalue>
 </attvalues>
-<viz:position x="29" y="64"></viz:position>
-<viz:color r="255" g="255" b="255"></viz:color>
-</node>
-         <node id="9" label="Worgs Rider" lat="26" long="24">
-<attvalues>
- <attvalue for="lat" value="26"></attvalue>
- <attvalue for="long" value="24"></attvalue>
-</attvalues>
-<viz:position x="26" y="24"></viz:position>
-<viz:color r="255" g="255" b="255"></viz:color>
-</node>
-         <node id="5" label="Worgs Rider" lat="69" long="19">
-<attvalues>
- <attvalue for="lat" value="69"></attvalue>
- <attvalue for="long" value="19"></attvalue>
-</attvalues>
-<viz:position x="69" y="19"></viz:position>
-<viz:color r="255" g="255" b="255"></viz:color>
-</node>
-         <node id="14" label="Barbare Orc" lat="17" long="58">
-<attvalues>
- <attvalue for="lat" value="17"></attvalue>
- <attvalue for="long" value="58"></attvalue>
-</attvalues>
-<viz:position x="17" y="58"></viz:position>
-<viz:color r="255" g="255" b="255"></viz:color>
-</node>
-         <node id="6" label="Worgs Rider" lat="17" long="85">
-<attvalues>
- <attvalue for="lat" value="17"></attvalue>
- <attvalue for="long" value="85"></attvalue>
-</attvalues>
-<viz:position x="17" y="85"></viz:position>
-<viz:color r="255" g="255" b="255"></viz:color>
-</node>
-         <node id="10" label="Worgs Rider" lat="36" long="38">
-<attvalues>
- <attvalue for="lat" value="36"></attvalue>
- <attvalue for="long" value="38"></attvalue>
-</attvalues>
-<viz:position x="36" y="38"></viz:position>
+<viz:position x="57" y="74"></viz:position>
 <viz:color r="255" g="255" b="255"></viz:color>
 </node>
          <node id="2" label="Solar">
 <attvalues>
- <attvalue for="lat" value="38"></attvalue>
- <attvalue for="long" value="55"></attvalue>
+ <attvalue for="lat" value="60"></attvalue>
+ <attvalue for="long" value="11"></attvalue>
 </attvalues>
-<viz:position x="38" y="55"></viz:position>
+<viz:position x="60" y="11"></viz:position>
 <viz:color r="255" g="204" b="0"></viz:color>
 </node>
-         <node id="15" label="Barbare Orc" lat="51" long="79">
+         <node id="15" label="Barbare Orc" lat="58" long="14">
 <attvalues>
- <attvalue for="lat" value="51"></attvalue>
- <attvalue for="long" value="79"></attvalue>
+ <attvalue for="lat" value="58"></attvalue>
+ <attvalue for="long" value="14"></attvalue>
 </attvalues>
-<viz:position x="51" y="79"></viz:position>
+<viz:position x="58" y="14"></viz:position>
 <viz:color r="255" g="255" b="255"></viz:color>
 </node>
-         <node id="11" label="Worgs Rider" lat="71" long="92">
+         <node id="11" label="Worgs Rider" lat="88" long="23">
 <attvalues>
- <attvalue for="lat" value="71"></attvalue>
- <attvalue for="long" value="92"></attvalue>
+ <attvalue for="lat" value="88"></attvalue>
+ <attvalue for="long" value="23"></attvalue>
 </attvalues>
-<viz:position x="71" y="92"></viz:position>
+<viz:position x="88" y="23"></viz:position>
 <viz:color r="255" g="255" b="255"></viz:color>
 </node>
-         <node id="3" label="Worgs Rider" lat="91" long="65">
+         <node id="3" label="Worgs Rider" lat="81" long="45">
 <attvalues>
- <attvalue for="lat" value="91"></attvalue>
- <attvalue for="long" value="65"></attvalue>
+ <attvalue for="lat" value="81"></attvalue>
+ <attvalue for="long" value="45"></attvalue>
 </attvalues>
-<viz:position x="91" y="65"></viz:position>
+<viz:position x="81" y="45"></viz:position>
 <viz:color r="255" g="255" b="255"></viz:color>
 </node>
-         <node id="7" label="Worgs Rider" lat="13" long="83">
+         <node id="7" label="Worgs Rider" lat="81" long="29">
 <attvalues>
- <attvalue for="lat" value="13"></attvalue>
- <attvalue for="long" value="83"></attvalue>
+ <attvalue for="lat" value="81"></attvalue>
+ <attvalue for="long" value="29"></attvalue>
 </attvalues>
-<viz:position x="13" y="83"></viz:position>
+<viz:position x="81" y="29"></viz:position>
 <viz:color r="255" g="255" b="255"></viz:color>
 </node>
          </nodes>
