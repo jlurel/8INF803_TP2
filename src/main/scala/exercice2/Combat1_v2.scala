@@ -19,7 +19,7 @@ case class Point(var x: Int, var y: Int) {
 
   override def toString: String = s"($x,$y)"
 
-  def move(point: Point, speed: Int): Point = {
+  def move(point: Point, speed: Int): Unit = {
     val deltaX = point.x - x
     val deltaY = point.y - y
     val angle = Math.atan2(deltaY, deltaX)
@@ -27,7 +27,6 @@ case class Point(var x: Int, var y: Int) {
 
     x += (speed * Math.cos( angle )).toInt
     y += (speed * Math.sin( angle )).toInt
-    Point(x, y)
   }
 
   def dist(point: Point): Double = {
@@ -125,7 +124,7 @@ class Fight extends Serializable {
     }
   }
 
-  def action(context: EdgeContext[Monster, String, Long]): Unit ={
+  def action(context: EdgeContext[Monster, String, (Point, Long)]): Unit ={
     val distance = context.srcAttr.position.dist(context.dstAttr.position).toInt
     var damage = 0
       if (context.srcAttr.alive) {
@@ -146,7 +145,11 @@ class Fight extends Serializable {
           }
         }
       }
-    context.sendToDst(damage)
+    var tuple: (Point, Long)  = (context.srcAttr.position, 0)
+    context.sendToSrc(tuple)
+
+    tuple = (context.dstAttr.position, damage)
+    context.sendToDst(tuple)
   }
 
   def selectBest(id1: Array[Int], id2: Array[Int]): Array[Int] = {
@@ -154,18 +157,18 @@ class Fight extends Serializable {
     else id2
   }
 
-  def sumDamage(id1: Long, id2: Long): Long = {
-    id1 + id2
+  def sumDamage(id1: (Point, Long), id2: (Point, Long)): (Point, Long) = {
+    (id1._1, id1._2 + id2._2)
   }
 
-  def deadColor(vid: VertexId, monster: Monster, totalDamage: Long): Monster = {
-    if (totalDamage >= monster.hp) {
+  def hitAndKill(vid: VertexId, monster: Monster, data: (Point, Long)): Monster = {
+    if (data._2 >= monster.hp) {
       return new Monster(monster.id, monster.name, 0, monster.position, false, monster.armor,
         0, monster.regeneration, monster.melee, monster.meleeDamage, monster.ranged, monster.rangedDamage, monster.speed, monster.target)
     }
     else {
-      return new Monster(monster.id, monster.name, monster.color, monster.position, true, monster.armor,
-        (monster.hp - totalDamage).toInt, monster.regeneration, monster.melee, monster.meleeDamage, monster.ranged, monster.rangedDamage, monster.speed, monster.target)
+      return new Monster(monster.id, monster.name, monster.color, data._1, true, monster.armor,
+        (monster.hp - data._2).toInt, monster.regeneration, monster.melee, monster.meleeDamage, monster.ranged, monster.rangedDamage, monster.speed, monster.target)
     }
   }
 
@@ -217,7 +220,7 @@ class Fight extends Serializable {
           (vid, monster, target) => selectTarget(vid, monster, target))
 
 
-        val messages2 = myGraph.aggregateMessages[Long](
+        val messages2 = myGraph.aggregateMessages[(Point, Long)](
           action,
           sumDamage,
           fields
@@ -234,7 +237,7 @@ class Fight extends Serializable {
         }
 
         myGraph = myGraph.joinVertices(messages2)(
-          (vid, monster, damage) => deadColor(vid, monster, damage))
+          (vid, monster, damage) => hitAndKill(vid, monster, damage))
 
         myGraph.vertices.collect().foreach(
           monster => monster._2.regen()
